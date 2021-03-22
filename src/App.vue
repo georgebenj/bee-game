@@ -1,184 +1,155 @@
 <template>
-  <h1>bees are pretty cool</h1>
-  <h2>{{bees}} bees</h2>
-  <button @click="getBees" :disabled="!isBee">MAKE BEE</button>
-  <h4 style="color: red" :hidden="isBee">need bigger beehive to make more bee</h4>
-  <h2>{{score}} honey</h2>
-  <h4>{{perSecond}}/s</h4>
-  <img class="image" :style="{top: imgTop, left: imgLeft, height:'100px', position: 'absolute', transform: flip, transition: 'ease 1s'}" src="./assets/bee.gif" alt="bee">
-  <Block v-if="isPlaying" @buy="buyHive"/>
-  <h6>beehives:{{bhive}}</h6>
-  <h6>better beehives:{{bbhive}}</h6>
-  <h6>mansions: {{mansion}}</h6>
-  <h2>HOW FAR HAS BEE TRAVELLED: {{miles}}</h2>
-  <h2>{{compliment}}</h2>
+  <div>
+    <div>
+      <label class="switch">
+        <input @change="darkModeToggle" type="checkbox">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <h1>bees are pretty cool</h1>
+    <h2>{{gameData.bees}} bees</h2>
+    <button @click="getBees()" :disabled="!gameData.isBee">MAKE BEE</button>
+    <h4 style="color: red;" :hidden="gameData.isBee">need more beehives to make more bee</h4>
+    <h2>{{gameData.score}} honey</h2>
+    <h4>{{gameData.perSecond}}/s</h4>
+    <div class="resources">
+      <div v-for="resource in gameData.resources" :key="resource.name">
+        <div style="color:tomato">{{resource.cost}}</div>
+        <button class="button" style="width:100px" :disabled="(gameData.score < resource.cost)" @click="resource.count++; resource.cost=Math.round(resource.cost*1.1);gameData.score = gameData.score-resource.cost; gameData.isBee = true; gameData.bees = gameData.bees + resource.rate">{{resource.name}}</button>
+        <div style="color: yellowgreen;">{{resource.count}}</div>
+        <br>
+      </div>
+    </div>
+    <h2>{{compliment}}</h2>
+    <img class="image" :style="{top: imgTop, left: imgLeft, height:'100px', position: 'absolute', transform: flip, transition: 'ease 1s'}" src="./assets/bee.gif" alt="bee">
+  </div>
 </template>
 
 <script>
-
-
 import json from './assets/compliments.json'
-import Block from './components/Block.vue'
 
 export default {
-  created() {
-    this.interval = setInterval(() => this.makeHoney(), 1000)},
   name: 'App',
-  components: { Block },
-  data() {
-    return {
-      compliments: json,
-      isPlaying: true,
-      delay: null,
-      score: 1,
-      bees: 0,
-      isBee: true,
-      perSecond: 0,
-      bhive: 1,
-      bbhive: 0,
-      mansion: 0,
-      castle: 0,
-      village: 0,
-      town: 0,
-      city: 0,
-      beetropolis: 0,
-      world: false,
-      imgLeft: null,
-      imgTop: null,
-      flip: null,
-      rotation: null,
-      miles: 0,
-      compliment: null
+  created(){
+    this.interval = setInterval(() => this.makeHoney(), 250)
+  },
+  //save the game to local storage
+  mounted(){
+    if(localStorage.gameData){
+      this.gameData = JSON.parse(localStorage.gameData)
     }
   },
-  methods: {
-    start(){
-      this.delay = 2000 + Math.random() * 5000;
-      this.isPlaying = true
-    },
+  watch:{
+    gameData:{
+      handler(newgameData){
+        localStorage.gameData = JSON.stringify(newgameData);
+      },
+      //deep means that the 'watch' gets called when nested data is updated
+      deep: true
+    }
+  },
+  data(){
+    return{
+      compliments: json,
+      compliment: null,
+      imgLeft: null,
+      imgTop: null,
+      miles: 0,
+      flip: null,
+      rotation: null,
+      gameData:{
+        resources: {
+          //the buttons are dynamic, so the more resources you add, the bigger the game
+          beehive:{
+            name: "beehive",
+            cost: 300,
+            rate: 10,
+            count: 1
+          },
+          better:{
+            name: "better hive",
+            cost: 1000,
+            rate: 100,
+            count: 0
+          },
+          mansion:{
+            name: "mansion",
+            cost: 8000,
+            rate: 800,
+            count: 0
+          },
+          castle:{
+            name: "castle",
+            cost: 30000,
+            rate: 2000,
+            count: 0
+          },
+          village:{
+            name: "village",
+            cost: 200000,
+            rate: 10000,
+            count: 0
+          }
+        },
+      bees: 0,
+      perSecond: 0,
+      isBee: true,
+      score: 0,
+      gameOver: false,
+      }
+    }
+  },
+  methods:{
+    //add bees on click
     getBees(){
-      var compNum = Math.round(Math.random() * 100)
-      var c = this.compliments
-      this.compliment = c.anytime[compNum]
-
-
-      if(this.bhive <= this.bees/100 && this.bbhive == 0){
-          this.isBee = false
-      }
-      if(this.isBee){
-        this.bees ++
-      }
-      else if(this.bhive == 0){
-        this.isBee = false
-      }
-    },
-    makeHoney(){
-      var num = Math.random() < 0.5 ? -1 : 1
-      var rnum = Math.round(Math.random() * 1000)
       var imgWidth = Math.round(Math.random() * window.innerWidth)-100
       var imgHeight = Math.round(Math.random() * window.innerHeight)-100
+      var num = Math.random() < 0.5 ? -1 : 1
+      var rnum = Math.round(Math.random() * 1000)
 
 
-      this.perSecond = this.bees / 4
-      this.score = this.score + this.perSecond
-      if(this.bees%4 == 1){
+            //move the bee
+      if(this.gameData.bees%6 == 1){
         this.imgLeft = `${imgWidth}px`
         this.imgTop = `${imgHeight}px`
         this.miles = this.miles + imgWidth + imgHeight
         this.flip = `scaleX(${num})`
         this.rotation = `rotate(${rnum})`
       }
+
+      //cycle through compliments
+      var compNum = Math.round(Math.random() * 100)
+      var c = this.compliments
+      this.compliment = c.anytime[compNum]
+
+      this.gameData.bees++
+      if(this.gameData.resources.beehive.count <= this.gameData.bees / 100 && this.gameData.resources.better.count < 1){
+        this.gameData.isBee = false;
+      }
     },
-     buyHive(type){
+    //this runs every 0.25s and controls the bee + number updates
+    makeHoney(){
 
-       if(type == "beehive"){
-         if(this.score > 300 && this.bhive < 5){
-           this.score = this.score - 300
-           this.isBee = true
-           this.bhive++
-         }
-         else if(this.score > 300 && this.bhive > 4){
-           alert("mum says you can only have 5")
-         }
-         else{
-           alert("Beehives cost 300")
-         }
-       }
 
-       if(type == "better"){
-         if(this.score > 3000 && this.bbhive < 5){
-           this.score = this.score - 3000
-           this.isBee = true
-           this.bbhive++
-           this.bees = this.bees + 300
-         }
-         else if(this.score > 3000 && this.bbhive > 4){
-           alert("mum says you can only have 5")
-         }
-         else{
-           alert("Better hives cost 3000")
-         }
-       }
 
-       if(type == "mansion" && this.mansion < 5){
-         if(this.score > 20000){
-           this.score = this.score - 20000
-           this.isBee = true
-           this.mansion++
-           this.bees = this.bees + 2000
-         }
-        else if(this.score > 20000 && this.mansion > 4){
-           alert("mum says you can only have 5")
-         }
-         else{
-           alert("Mansions cost 20000")
-         }
-       }
-      if(type == "castle" && this.castle < 5){
-         if(this.score > 100000){
-           this.score = this.score - 100000
-           this.isBee = true
-           this.castle++
-           this.bees = this.bees + 8000
-         }
-        else if(this.score > 100000 && this.castle > 4){
-           alert("mum says you can only have 5")
-         }
-         else{
-           alert("Castles cost 100,000")
-         }
-       }
-      if(type == "village" && this.village < 5){
-         if(this.score > 1000000){
-           this.score = this.score - 1000000
-           this.isBee = true
-           this.village++
-           this.bees = this.bees + 20000
-         }
-        else if(this.score > 1000000 && this.village > 4){
-           alert("mum says you can only have 5")
-         }
-         else{
-           alert("Villages cost 1m")
-         }
-       }
-      if(type == "town" && this.town < 5){
-         if(this.score > 5000000){
-           this.score = this.score - 5000000
-           this.isBee = true
-           this.town++
-           this.bees = this.bees + 100000
-         }
-        else if(this.score > 5000000 && this.town > 4){
-           alert("mum says you can only have 5")
-         }
-         else{
-           alert("Towns cost 5m")
-         }
-       }
-     }
+
+      //calculate the score per second
+      this.gameData.score = Math.round(this.gameData.score + this.gameData.perSecond/4)
+      this.gameData.perSecond = this.gameData.bees / 4
+      //WIN THE GAME
+      if(this.gameData.resources.village.count <= 10){
+        alert("YOU WIN! Thank you for playing Bee Game v1.0.1 - More updates coming soon...")
+      }
+    },
+
+    //because our poor eyes can't handle modern technology
+    darkModeToggle(){
+      var element = document.body
+      element.classList.toggle("dark-mode")
+    }
   }
 }
+
 </script>
 
 <style>
@@ -187,8 +158,71 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #444;
+  color: #777777;
   margin-top: 60px;
 }
-</style>
+.dark-mode{
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  background:midnightblue;
+  color: #e6e6e6;
+  margin-top: 60px;
+}
+ /* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
 
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+
+</style>
