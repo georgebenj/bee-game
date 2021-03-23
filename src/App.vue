@@ -1,6 +1,7 @@
 <template>
   <div>
     <div>
+
       <label class="switch">
         <input @change="darkModeToggle" type="checkbox">
         <span class="slider"></span>
@@ -24,7 +25,8 @@
     </div>
     <h5>bee has travelled: {{gameData.miles}}px</h5>
     <h2>{{compliment}}</h2>
-    <img class="image" :style="{top: imgTop, left: imgLeft, height:'100px', position: 'absolute', transform: flip, transition: 'ease 1s'}" src="./assets/bee.gif" alt="bee">
+    <img class="image" @click="beeClick" :style="{top: imgTop, left: imgLeft, height:'100px', position: 'absolute', transform: flip, transition: 'ease 1s'}" src="./assets/bee.gif" alt="bee">
+    <button style="color: darkred; margin: 4px 2px; " @click="resetGame">reset</button>
   </div>
 </template>
 
@@ -46,7 +48,7 @@ export default {
       handler(newgameData){
         localStorage.gameData = JSON.stringify(newgameData);
       },
-      //deep means that the 'watch' gets called when nested data is updated
+      //deep means that the 'watch' gets called even when nested data is updated
       deep: true
     }
   },
@@ -64,61 +66,61 @@ export default {
           //the buttons are dynamic, so the more resources you add, the bigger the game
           beehive:{
             name: "beehive",
-            cost: 30,
-            rate: 1,
+            cost: 500,
+            rate: 20,
             count: 1
           },
           better:{
             name: "better hive",
-            cost: 100,
-            rate: 10,
+            cost: 2000,
+            rate: 100,
             count: 0
           },
           mansion:{
             name: "mansion",
-            cost: 800,
-            rate: 80,
+            cost: 10000,
+            rate: 400,
             count: 0
           },
           castle:{
             name: "castle",
-            cost: 3000,
-            rate: 200,
+            cost: 60000,
+            rate: 1600,
             count: 0
           },
           village:{
             name: "village",
-            cost: 20000,
-            rate: 1000,
+            cost: 500000,
+            rate: 4000,
             count: 0
           },
           town:{
             name: "town",
-            cost: 100000,
-            rate: 8000,
+            cost: 3000000,
+            rate: 16000,
             count: 0
           },
           city:{
             name: "city",
-            cost: 1250000,
+            cost: 25000000,
             rate: 100000,
             count: 0
           },
           beetropolis:{
             name: "beetropolis",
-            cost: 15000000,
+            cost: 300000000,
             rate: 500000,
             count: 0
           },
           planet:{
             name: "planet",
-            cost: 100000000,
+            cost: 1000000000,
             rate: 1000000,
             count: 0
           }
         },
       miles: 0,
-      bees: 0,
+      bees: 20,
       perSecond: 0,
       isBee: true,
       score: 0,
@@ -172,6 +174,19 @@ export default {
         this.fontColor = "525252"
         console.log(this.fontColor)
       }
+    },
+    resetGame(){
+      this.gameData = localStorage.clear();
+      location.reload();
+    },
+    beeClick(){
+      var imgWidth = Math.round(Math.random() * window.innerWidth)-100
+      var imgHeight = Math.round(Math.random() * window.innerHeight)-100
+      this.imgLeft = `${imgWidth}px`
+      this.imgTop = `${imgHeight}px`
+      this.flip = `scaleX(${Math.random() < 0.5 ? -1 : 1})`
+      this.gameData.miles = this.gameData.miles + imgWidth + imgHeight
+
     }
   }
 }
