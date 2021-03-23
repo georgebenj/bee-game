@@ -145,7 +145,7 @@ export default {
       }
             //WIN THE GAME
       if(this.gameData.resources.planet.count > 10){
-        alert("YOU WIN! Thank you for playing Bee Game v1.0.1 - More updates coming soon...")
+        alert("YOU WIN! Thank you for playing Bee Game v1.0.4 - More updates coming soon...")
       }
       //cycle through compliments
       var compNum = Math.round(Math.random() * 100)
